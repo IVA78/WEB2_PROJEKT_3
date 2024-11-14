@@ -9,6 +9,6 @@ html {
 
 #gameCanvas {
   display: block;
-  background-color: #dedae3;
-  border: solid #7772e2 3px;
+  background-color: black;
+  border: solid #fdd149 3px;
 }
