@@ -1,14 +1,13 @@
-//dohvaćam canvas kao element
-const canvas = document.getElementById("gameCanvas");
+//definiranje osnovih varijabli za kanvas
+let canvas;
+let canvasWidth = window.innerWidth - 6; //postavljam širinu kanvasa - uzimam u obzir 3px sa svake strane
+let canvasHeight = window.innerHeight - 6; //postavljam  visinu kanvasa - uzimam u obzir 3px sa svake strane
+let context;
 
-//funkcija za promjenu veličine kanvasa
-function resizeCanvas() {
-  //postavljam širinu i visinu kanvasa - uzimam u obzir 3px sa svake strane
-  canvas.width = window.innerWidth - 6;
-  canvas.height = window.innerHeight - 6;
-}
-
-//postavljam inicijalnu veličinu zaslona
-resizeCanvas();
-//slušam za potencijalne promjene zaslona i mijenjam veličinu kanvasa
-window.addEventListener("resize", resizeCanvas);
+//postavljanje velicine canvasa pri ucitavanju zaslona i definiranje konteksta
+window.onload = function () {
+  canvas = document.getElementById("gameCanvas");
+  canvas.height = canvasHeight;
+  canvas.width = canvasWidth;
+  context = canvas.getContext("2d");
+};
