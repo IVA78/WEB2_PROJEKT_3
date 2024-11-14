@@ -8,26 +8,28 @@ let context;
 let stickWidth = 100;
 let stickHeight = 15;
 let stickVelocity = 10;
+let angle = Math.PI / 4 + Math.random() * (Math.PI / 2); //kut izmedju 45 i 135 stupnjeva
 
 let stick = {
   x: canvasWidth / 2 - stickWidth / 2, //centriranje na dnu
-  y: canvasHeight - 20, //5px iznad ruba
+  y: canvasHeight - 20, //iznad donjeg ruba
   width: stickWidth,
   height: stickHeight,
   velocityX: stickVelocity, //postavljanje brzine za kretanje u smjeru x osi
+  color: "red",
 };
 
 //definiranje loptice
 let ballRadius = 10;
-let ballVelocityX = 3;
-let ballVelocityY = 2;
+let ballVelocityX = 5;
+let ballVelocityY = 5;
 
 let ball = {
-  x: canvasWidth / 2,
-  y: canvasHeight / 2,
+  x: stick.x + stick.width / 2, //horizontalno centriranje
+  y: stick.y - ballRadius - 10, //postavljanje iznad palice (border uzet u obzir)
   radius: ballRadius,
-  velocityX: ballVelocityX,
-  velocityY: ballVelocityY,
+  velocityX: ballVelocityX * Math.cos(angle), //horizontalno ubrzanje ovisno o kutu
+  velocityY: ballVelocityY * Math.sin(angle), //vertikalno ubrzanje ovisno o kutu
 };
 
 //definiranje cigli
@@ -35,7 +37,7 @@ let brickArray = []; //polje za spremanje cigli
 let brickWidth = 85;
 let brickHeight = 18;
 let brickColumns = calculateBrickColumns(canvasWidth, 8);
-let brickRows = 4;
+let brickRows = 5;
 let brickMaxRows = 10;
 let brickCount = 0;
 
@@ -48,6 +50,13 @@ let score = 0;
 
 //definiranje varijable za kraj igre
 let gameOver = false;
+
+//dohvat zvukova
+// Učitavanje zvukova
+const collisionSound = new Audio("assets/sounds/collision.mp3");
+const scoreSound = new Audio("assets/sounds/score.wav");
+const gameOverSound = new Audio("assets/sounds/gameover.wav");
+const startGameSound = new Audio("assets/sounds/gamestarted.wav");
 
 //postavljanje velicine canvasa pri ucitavanju zaslona i definiranje konteksta
 window.onload = function () {
@@ -66,6 +75,8 @@ window.onload = function () {
 
   //postavljanje inicijalnih cigli
   createBlicks();
+
+  startGameSound.play();
 };
 
 //funkcija koja kreira animacijsku petlju koristeci requestAnimationFrame koji kontinuirano iscrtava palicu na zadanoj poziciji
@@ -82,12 +93,21 @@ function update() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 
   //nacrtaj palicu
-  context.fillStyle = "#fdd149";
+  context.shadowColor = "rgba(0, 0, 0, 0.5)"; // boja sjenke
+  context.shadowBlur = 10; // zamućenje sjenke
+  context.shadowOffsetX = 0; // pomak sjenke po x-osi
+  context.shadowOffsetY = 4; // pomak sjenke po y-osi
+  context.fillStyle = stick.color;
   context.fillRect(stick.x, stick.y, stick.width, stick.height);
+  //resetiranje postavki za sjencenje da se ne pojavljuju i na dr.elementima
+  context.shadowColor = "transparent";
+  context.shadowBlur = 0;
+  context.shadowOffsetX = 0;
+  context.shadowOffsetY = 0;
 
   //nacrtaj lopticu
   context.beginPath();
-  context.fillStyle = "white";
+  context.fillStyle = "black";
   ball.x = ball.x + ball.velocityX;
   ball.y = ball.y + ball.velocityY;
   context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
@@ -98,9 +118,11 @@ function update() {
   if (ball.y <= 0) {
     //ako loptica udari vrh kanvasa
     ball.velocityY = ball.velocityY * -1;
+    collisionSound.play();
   } else if (ball.x <= 0 || ball.x + ball.radius >= canvasWidth) {
     //ako loptica udari lijevi ili desni rub kanvasa
     ball.velocityX = ball.velocityX * -1;
+    collisionSound.play();
   } else if (ball.y + ball.radius >= canvasHeight) {
     //ako loptica udari dno kanvasa -> GAME OVER
     gameOver = true;
@@ -108,13 +130,16 @@ function update() {
     context.textAlign = "center"; //horizontalno poranvanje teksta
     context.textBaseline = "middle"; //vertikalno poravnanje teksta
     context.fillText("GAME OVER", canvasWidth / 2, canvasHeight / 2); //postavljanje teksta na sredinu ekrana
+    gameOverSound.play();
   }
 
   //odbijanje loptice od palice
   if (topCollision(ball, stick) || bottomCollision(ball, stick)) {
     ball.velocityY = ball.velocityY * -1; //okrece Y smjer  kretanja
+    collisionSound.play();
   } else if (leftCollision(ball, stick) || rightCollision(ball, stick)) {
     ball.velocityX = ball.velocityX * -1; // okrece X smjer kretanja
+    collisionSound.play();
   }
 
   // Nacrtaj cigle
@@ -122,20 +147,31 @@ function update() {
     let brick = brickArray[m];
     if (!brick.broken) {
       // iscrtaj samo cigle koje nisu razbijene
-      context.fillStyle = "#fdd149";
+      context.shadowColor = "rgba(0, 0, 0, 0.5)"; // boja sjenke
+      context.shadowBlur = 10; // zamućenje sjenke
+      context.shadowOffsetX = 0; // pomak sjenke po x-osi
+      context.shadowOffsetY = 4; // pomak sjenke po y-osi
+      context.fillStyle = "red";
       //provjeri kolizije
       if (topCollision(ball, brick) || bottomCollision(ball, brick)) {
         brick.broken = true;
         ball.velocityY = ball.velocityY * -1; //okrece Y smjer  kretanja
         brickCount = brickCount - 1;
-        score += 100;
+        score += 1;
+        scoreSound.play();
       } else if (leftCollision(ball, brick) || rightCollision(ball, brick)) {
         brick.broken = true;
         ball.velocityX = ball.velocityX * -1; //okrece X smjer  kretanja
         brickCount = brickCount - 1;
-        score += 100;
+        score += 1;
+        scoreSound.play();
       }
       context.fillRect(brick.x, brick.y, brick.width, brick.height);
+      //resetiranje postavki za sjencenje da se ne pojavljuju i na dr.elementima
+      context.shadowColor = "transparent";
+      context.shadowBlur = 0;
+      context.shadowOffsetX = 0;
+      context.shadowOffsetY = 0;
     }
   }
 
