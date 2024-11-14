@@ -36,9 +36,8 @@ let ball = {
 let brickArray = []; //polje za spremanje cigli
 let brickWidth = 85;
 let brickHeight = 18;
-let brickColumns = calculateBrickColumns(canvasWidth, 8);
+let brickColumns = calculateBrickColumns(canvasWidth, 8); //izracunavam koliko stupaca ce mi stati na zaslon
 let brickRows = 5;
-let brickMaxRows = 10;
 let brickCount = 0;
 
 //pocetak cigli -> gornji lijevi kut
