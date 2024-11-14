@@ -3,7 +3,7 @@
 ## Opis projekta
 Projekt predstavlja pojednostavljenu, 2D verziju klasične arkadne igre Breakout, izrađenu kao HTML5 web aplikacija. Igra prikazuje Canvas element koji pokriva cijeli prozor preglednika, s vidljivim rubom i pozadinom u boji po izboru radi boljeg kontrasta. Cilj igre je uništiti sve cigle odbijanjem loptice o palicu kojom igrač upravlja. Igra završava kada igrač razbije sve cigle ili izgubi lopticu.
 
-## Glavne funkcionalnosti
+## Glavne i dodatne funkcionalnosti
 - Prikaz igre:
   - Igra se prikazuje u Canvas objektu koji prekriva cijeli zaslon preglednika.
   - Canvas ima vidljiv rub i pozadinsku boju u kontrastu s elementima igre.
