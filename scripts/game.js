@@ -18,16 +18,14 @@ let stick = {
 };
 
 //definiranje loptice
-let ballWidth = 10;
-let ballHeight = 10;
+let ballRadius = 10;
 let ballVelocityX = 3;
 let ballVelocityY = 2;
 
 let ball = {
   x: canvasWidth / 2,
   y: canvasHeight / 2,
-  width: ballWidth,
-  height: ballHeight,
+  radius: ballRadius,
   velocityX: ballVelocityX,
   velocityY: ballVelocityY,
 };
@@ -88,19 +86,22 @@ function update() {
   context.fillRect(stick.x, stick.y, stick.width, stick.height);
 
   //nacrtaj lopticu
+  context.beginPath();
   context.fillStyle = "white";
   ball.x = ball.x + ball.velocityX;
   ball.y = ball.y + ball.velocityY;
-  context.fillRect(ball.x, ball.y, ball.width, ball.height);
+  context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  context.fill();
+  context.closePath();
 
   //odbijanje loptice od rub
   if (ball.y <= 0) {
     //ako loptica udari vrh kanvasa
     ball.velocityY = ball.velocityY * -1;
-  } else if (ball.x <= 0 || ball.x + ball.width >= canvasWidth) {
+  } else if (ball.x <= 0 || ball.x + ball.radius >= canvasWidth) {
     //ako loptica udari lijevi ili desni rub kanvasa
     ball.velocityX = ball.velocityX * -1;
-  } else if (ball.y + ball.height >= canvasHeight) {
+  } else if (ball.y + ball.radius >= canvasHeight) {
     //ako loptica udari dno kanvasa -> GAME OVER
     gameOver = true;
     context.font = "80px sans-serif";
@@ -198,33 +199,31 @@ function checkStickUutOfBounds(x) {
   return x < 0 || x + stickWidth > canvasWidth;
 }
 
-//detektiranje kolizije za dva pravokutnika
-function colisionDetection(a, b) {
-  /**
-   Pravokutnik A: a.x, a.y, a.width, a.height
-   Pravokutnik B: b.x, b.y, b.width, b.height
-          A:
-          +------+                B:
-          |      |                +------+
-          |      |                |      |
-          |      |                |      |
-          +------+                +------+
-        a.x + a.width            b.x + b.width
-   
-   */
-  return (
-    a.x < b.x + b.width && //gornji lijevi kut pravokutnika A ne sijece gornji desni kut pravokutnika B
-    a.x + a.width > b.x && //gornji desni kut pravokutnika A ne sijece gornji lijevi kut pravokutnika B
-    a.y < b.y + b.height && //gornji lijevi kud pravokutnika A ne sijece donji lijevi kud pravokutnika B
-    a.y + a.height > b.y //donji lijevi kut pravokutnika A ne sijece gornji lijevi kut pravokutnika B
+//detektiranje kolizije za lopticu i palicu ili ciglu -> formula za udaljenost dviju tocaka
+function colisionDetection(ball, stickOrBrick) {
+  // pronadji najblizu tocku na pravokutniku(stickOrBrick) u odnosu na centar loptice
+  let closestX = Math.max(
+    stickOrBrick.x,
+    Math.min(ball.x, stickOrBrick.x + stickOrBrick.width)
   );
+  let closestY = Math.max(
+    stickOrBrick.y,
+    Math.min(ball.y, stickOrBrick.y + stickOrBrick.height)
+  );
+
+  //udaljenost od centra loptice do najblize tocke
+  let distX = ball.x - closestX;
+  let distY = ball.y - closestY;
+
+  //vraca true ako je udaljenost manja ili jednaka radijusu
+  return Math.sqrt(distX * distX + distY * distY) <= ball.radius;
 }
 
 //detektiranje gornje kolizije
 function topCollision(ball, stickOrBrick) {
   return (
     colisionDetection(ball, stickOrBrick) &&
-    ball.y + ball.height >= stickOrBrick.y //loptica je iznad palice/cigle
+    ball.y - ball.radius <= stickOrBrick.y //loptica je iznad palice/cigle
   );
 }
 
@@ -232,7 +231,7 @@ function topCollision(ball, stickOrBrick) {
 function bottomCollision(ball, stickOrBrick) {
   return (
     colisionDetection(ball, stickOrBrick) &&
-    stickOrBrick.y + stickOrBrick.height >= ball.y // loptica je ispod palice/cigle
+    ball.y + ball.radius >= stickOrBrick.y + stickOrBrick.height // loptica je ispod palice/cigle
   );
 }
 
@@ -240,7 +239,7 @@ function bottomCollision(ball, stickOrBrick) {
 function leftCollision(ball, stickOrBrick) {
   return (
     colisionDetection(ball, stickOrBrick) &&
-    ball.x + ball.width >= stickOrBrick.x // loptica je lijevo od palice/cigle
+    ball.x - ball.radius <= stickOrBrick.x // loptica je lijevo od palice/cigle
   );
 }
 
@@ -248,7 +247,7 @@ function leftCollision(ball, stickOrBrick) {
 function rightCollision(ball, stickOrBrick) {
   return (
     colisionDetection(ball, stickOrBrick) &&
-    stickOrBrick.x + stickOrBrick.width >= ball.x // loptica je desno od palice/cigle
+    ball.x + ball.radius >= stickOrBrick.x + stickOrBrick.width // loptica je desno od palice/cigle
   );
 }
 
